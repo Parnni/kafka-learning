@@ -12,26 +12,15 @@ producer = Producer(producer_configs)
 
 def order_delivery_callback(error, msg):
     """Order delivery callback"""
-    msg_str = msg.value().decode("utf-8")
-
-    topic = msg.topic()
-    partition = msg.partition()
-
     if error:
-        print(
-            (
-                f"Error occurred during delivery of order: {msg_str} "
-                f"Topic: {topic} "
-                f"Partition: {partition} "
-                f"Error: {error}"
-            )
-        )
+        print(f"❌ Delivery failed: {error}")
     else:
+        print(f"✅ Delivered {msg.value().decode("utf-8")}")
         print(
             (
-                f"{msg_str} was delivered successfully "
-                f"Topic: {topic} "
-                f"Partition: {partition} "
+                "✅ Delivered to "
+                f"{msg.topic()} : partition {msg.partition()} : "
+                f"at offset {msg.offset()}"
             )
         )
 
