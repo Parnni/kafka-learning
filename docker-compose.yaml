@@ -8,20 +8,20 @@ services:
       - 9092:9092
 
     environment:
-      KAFKA_KRAFT_MODE: 'true'
+      KAFKA_KRAFT_MODE: 'true' # Enables KRaft mode (ZooKeeper-less Kafka).
       
-      CLUSTER_ID: 'some_cluster_id'
-      KAFKA_NODE_ID: 1
+      CLUSTER_ID: 'some_cluster_id' # Unique ID for the Kafka cluster (required in KRaft mode).
+      KAFKA_NODE_ID: 1 # Unique numeric ID for this node in the cluster.
 
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller  # This node acts as both a broker and controller.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093 # Define who can vote for the controller.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Keep only 1 copy of internal Kafka topics
 
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093 # Listen for producer and consumer client connections on 9092 and controller traffic on 9093.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092 # Tell clients to connect using localhost:9092.
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER # Use the CONTROLLER listener for controller communication.
 
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs # Store Kafka logs (data) in this folder inside the container.
 
     volumes:
       - kafka_kraft:/var/lib/kafka/data
