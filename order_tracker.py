@@ -1,6 +1,15 @@
 import json
+import logging
 
 from confluent_kafka import Consumer
+
+from topics import Topics
+
+logger = logging.getLogger("consumer")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-8s %(message)s"))
+logger.addHandler(handler)
 
 consumer_configs = {
     "bootstrap.servers": "localhost:9092",
@@ -8,40 +17,44 @@ consumer_configs = {
     "auto.offset.reset": "earliest",
 }
 
-consumer = Consumer(consumer_configs)
+consumer = Consumer(consumer_configs, logger=logger)
 consumer.subscribe(
     [
-        "order",
+        Topics.ORDER.value,
     ]
 )
 
 
-MSG_COUNT = 0
-MIN_COMMIT_COUNT = 10
+if __name__ == "__main__":
+    MSG_COUNT = 0
+    MIN_COMMIT_COUNT = 10
 
-try:
-    while True:
-        msg = consumer.poll(5.0)
-        if msg is None:
-            print("No messages found")
-            continue
-        if msg.error():
-            print(f"Error occurred: {msg.error()}")
-            continue
+    try:
+        while True:
+            msg = consumer.poll(5.0)
 
-        topic = msg.topic()
-        partition = msg.partition()
+            if msg is None:
+                print("No messages found")
+                continue
+            if msg.error():
+                print(f"Error occurred: {msg.error()}")
+                continue
 
-        order_event = json.loads(msg.value().decode("utf-8"))
-        print(
-            f"Consuming msg from topic: {topic} and partition: {partition}", order_event
-        )
+            topic = msg.topic()
+            partition = msg.partition()
 
-        MSG_COUNT += 1
-        if MSG_COUNT % MIN_COMMIT_COUNT == 0:
-            consumer.commit(asynchronous=True)
+            order_event = json.loads(msg.value().decode("utf-8"))
+            print(
+                f"Consuming msg from topic: {topic} and partition: {partition}",
+                order_event,
+            )
 
-except (Exception, KeyboardInterrupt) as e:
-    print(f"Error: {e}")
-finally:
-    consumer.close()
+            MSG_COUNT += 1
+            if MSG_COUNT % MIN_COMMIT_COUNT == 0:
+                print("Committing")
+                consumer.commit(asynchronous=True)
+
+    except (Exception, KeyboardInterrupt) as e:
+        print(f"Error: {e}")
+    finally:
+        consumer.close()
