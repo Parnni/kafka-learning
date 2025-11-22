@@ -15,6 +15,10 @@ consumer.subscribe(
     ]
 )
 
+
+MSG_COUNT = 0
+MIN_COMMIT_COUNT = 10
+
 try:
     while True:
         msg = consumer.poll(5.0)
@@ -32,6 +36,11 @@ try:
         print(
             f"Consuming msg from topic: {topic} and partition: {partition}", order_event
         )
+
+        MSG_COUNT += 1
+        if MSG_COUNT % MIN_COMMIT_COUNT == 0:
+            consumer.commit(asynchronous=True)
+
 except (Exception, KeyboardInterrupt) as e:
     print(f"Error: {e}")
 finally:
